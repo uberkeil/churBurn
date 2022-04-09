@@ -8,18 +8,20 @@ library(forcats)
 library(here)
 
 # Creating the template for lists that will be populated with various outputs/objects
-bench <- list(imports = list(raw_data = ""),  #This might need to be changed constantly as we go :P 
-              CHURvey = list(chur_wide = ""),
-              temp = list(""))
+bench <- list(raw_data = "", 
+              chur_tidy = "",
+              chur_clean = "",
+              temp = list(""),
+              miss = "")
 
 ## Importing raw data file
-bench$imports$raw_data <- 
-  read_csv(file = here("ChurBurn2018_public.csv")) %>%
+bench$raw_data <- 
+  read_csv(file = here("data", "ChurBurn2018_public.csv")) %>%
   as_tibble()
 
 # Cleaning the dataset via many pipes and functions of the tidyverse
-bench$CHURvey$chur_wide <-
-  bench$imports$raw_data %>%
+bench$chur_tidy <-
+  bench$raw_data %>%
   dplyr::select(city = starts_with("Where do you"),  #Renaming variable headings using select function.
                 nights = starts_with("What nights"), 
                 nxtyear = starts_with("Would you buy"),
@@ -96,10 +98,8 @@ bench$CHURvey$chur_wide <-
          starts_with("keen"), starts_with("far"), starts_with("what"), love, dislike, improve, fdback) %>%
   mutate_if(is.character, as.factor) #Making sure any factors coerced to characters are factors again.
 
-#Where do we write this too? Or do we leave this post analysis of missingness?
-
-
-
+bench$chur_tidy %>% #this is purely for demonstration purposes.
+  write_csv(here("data", "chur2018_tidy.csv")) #this could simply be an object in the r enviroinment
 
 
 
