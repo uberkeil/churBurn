@@ -1,9 +1,7 @@
----
-title: "Chur Burn 2018 Dataset"
-author: "Kyle Simpson"
-date: "4/10/2022"
-output: github_document
----
+Chur Burn 2018 Dataset
+================
+Kyle Simpson
+4/10/2022
 
 ## An Example of a Data Cleaning & Analysis of Missingness Workflow Using:
 
@@ -20,9 +18,12 @@ library(reshape2)
 
 ### Creating a list architecture
 
-I personally like to keep a relatively uncluttered R environment.  Personally, I find that storing the objects and outputs I produce over the course of an analysis on a list helps me better conceptualize my project.
+I personally like to keep a relatively uncluttered R environment.
+Personally, I find that storing the objects and outputs I produce over
+the course of an analysis on a list helps me better conceptualize my
+project.
 
-```r
+``` r
 bench <- list(raw_data = "", 
               chur_tidy = "",
               chur_clean = "",
@@ -32,18 +33,19 @@ bench <- list(raw_data = "",
 
 ### Importing raw data file
 
-Likewise, I enjoy the `here` package as it helps facilitate project based programming and maintaining a uniform
-file structure across all projects. 
+Likewise, I enjoy the `here` package as it helps facilitate project
+based programming and maintaining a uniform file structure across all
+projects.
 
-```r
+``` r
 bench$raw_data <- 
   read_csv(file = here("data", "raw", "ChurBurn2018_public.csv")) %>%
   as_tibble()
 ```
 
-### I'm also a fan of pipes
+### I’m also a fan of pipes
 
-```r
+``` r
 bench$chur_tidy <-
   bench$raw_data %>%
   dplyr::select(city = starts_with("Where do you"),  #Renaming variable headings using select function.
@@ -123,8 +125,11 @@ bench$chur_tidy <-
   mutate_if(is.character, as.factor) #Making sure any factors coerced to characters are factors again.
 ```
 
-If one so desired, they could export the tidy (in terms of formatting) but not yet clean (because of missingness) dataset from the R environment
-```r
+If one so desired, they could export the tidy (in terms of formatting)
+but not yet clean (because of missingness) dataset from the R
+environment
+
+``` r
 bench$chur_clean %>% #this is purely for demonstration purposes.
   write_csv(here("data", "raw", "clean_data", "chur2018_clean.csv")) #this could simply be an object in the r enviroinment
 ```
@@ -174,12 +179,12 @@ bench$chur_tidy %>% # Graphing patterns of missingness
   as_shadow_upset() %>%
   upset(nsets = 7)
 ```
+
 #### Figure 1: Pattern of Missingness
 
 <p align="center">
 <img src='https://raw.githubusercontent.com/uberkeil/churBurn/master/figures/naniar_graph.png'>
 </p>
-
 
 ### Graphing Map of Missingness
 
@@ -201,22 +206,26 @@ ggplot_missing <- function(x){ # Map of missingness function
 
 ggplot_missing(bench$chur_tidy) ## Map of missingness
 ```
+
 #### Figure 2: Map of Missingness
 
-<p align ="center">
+<p align="center">
 <img src='https://raw.githubusercontent.com/uberkeil/churBurn/master/figures/missingMap.png'>
 </p>
 
-### Little's MCAR Test & Multivariate Imputation by Chained Equations (mice)
+### Little’s MCAR Test & Multivariate Imputation by Chained Equations (mice)
 
-We can see that the open ended questions have the greatest amount of missingness, and are likely to have 
-been left blank in many cases due to respondents having an aversion to open ended questions.  Moreover, 
-barring reducing every open ended question to a continuous variable (e.g. via sentiment analysis) there is 
-no way that imputation can be applied to these missing values.
+We can see that the open ended questions have the greatest amount of
+missingness, and are likely to have been left blank in many cases due to
+respondents having an aversion to open ended questions. Moreover,
+barring reducing every open ended question to a continuous variable
+(e.g. via sentiment analysis) there is no way that imputation can be
+applied to these missing values.
 
-For this reason, a subset containing only categorical and continuous variables was be created.
+For this reason, a subset containing only categorical and continuous
+variables was be created.
 
-```r
+``` r
 bench$miss <- # Creating a df for purposes of analysis of missingness and imputation
   bench$chur_tidy %>% # Should probably hang this on this list.
   select(ID, city, num_nights, burner, nxtyear:whatfest) %>%
@@ -238,10 +247,10 @@ bench$miss <- # Creating a df for purposes of analysis of missingness and imputa
 #> … with 125 more rows 
 ```
 
-Applying Little's MCAR test produces a significant result (p < .05) meaning that the missing data is
-not missing completely at random. 
+Applying Little’s MCAR test produces a significant result (p &lt; .05)
+meaning that the missing data is not missing completely at random.
 
-```r
+``` r
 mcar_test(bench$miss) #MCAR Test for Analysis of Missingess
 #> A tibble: 1 × 4
 #>  statistic    df p.value missing.patterns
@@ -249,30 +258,34 @@ mcar_test(bench$miss) #MCAR Test for Analysis of Missingess
 #>      35.0     17 0.00619                3
 ```
 
-But when we look at the missing items for ID = 46, we can see that the respondent likely  
-left these items blank given that there was no distance that they'd be willing to travel
-or a form of festival that they'd be interested in attending. This is an important consideration
-for survey design, in that the item should have accounted for this. 
+But when we look at the missing items for ID = 46, we can see that the
+respondent likely  
+left these items blank given that there was no distance that they’d be
+willing to travel or a form of festival that they’d be interested in
+attending. This is an important consideration for survey design, in that
+the item should have accounted for this.
 
-```r
+``` r
 bench$miss[46, 8:10]
 #> A tibble: 1 × 3
 #> keenfest farfest whatfest
 #>    <dbl>   <dbl>    <dbl>
 #>        1      NA       NA
 ```
-In this case however, because we have rescaled the items in question, we can simply attribute the 
-lowest value in each case. 
 
-```r
+In this case however, because we have rescaled the items in question, we
+can simply attribute the lowest value in each case.
+
+``` r
 bench$miss$whatfest[46] <- 1
 bench$miss$farfest[46] <- 1
 ```
 
-Performing Little's MCAR test again produces a non-significant result (p = .184) meaning that we can presume
-that the rest of the missingness in this dataset is MCAR.
+Performing Little’s MCAR test again produces a non-significant result (p
+= .184) meaning that we can presume that the rest of the missingness in
+this dataset is MCAR.
 
-```r
+``` r
 mcar_test(bench$miss) # Second application of Little's MCAR test after manual imputations of missing values.
 #> A tibble: 1 × 4
 #>  statistic    df p.value missing.patterns
@@ -280,28 +293,30 @@ mcar_test(bench$miss) # Second application of Little's MCAR test after manual im
 #>       12.6     9   0.184                2
 ```
 
-Multivariate imputation can now be applied to the data set via weighted predictive mean matching...
+Multivariate imputation can now be applied to the data set via weighted
+predictive mean matching…
 
-```r
+``` r
 bench$temp$mi.temp <- 
   mice(bench$miss, m = 5, maxit = 50, meth = 'midastouch', seed = 500)
 
 summary(bench$temp$mi.temp)
 ```
 
-...which produces a value of '4' for the missing value. 
+…which produces a value of ‘4’ for the missing value.
 
-```r
+``` r
 bench$temp$mi.temp$imp$keenfest #eyeballing imputed data as generated by mice
 #>  1 2 3 4 5
 #>  4 5 4 4 4
 ```
 
-This is imputed onto the temporary `miss` dataset, which is then merged with the openended portion
-of the orignal datset using a merging join.  The resulting object `chur_clean` is written as a .csv
-in our `clean_data` directory.
+This is imputed onto the temporary `miss` dataset, which is then merged
+with the openended portion of the orignal datset using a merging join.
+The resulting object `chur_clean` is written as a .csv in our
+`clean_data` directory.
 
-```r
+``` r
 bench$miss <- as.tibble(complete(bench$temp$mi.temp, 1)) 
 
 bench$chur_clean <- #Merging OE questions with the rest of the dataset
