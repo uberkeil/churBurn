@@ -60,7 +60,7 @@ bench$chur_tidy <-
   mutate(num_nights = factor(ifelse(nights != "BOTH", "1", "2"))) %>% #Creating a number of nights in attendence variable.
   mutate(nxtyear = factor(nxtyear, levels = c( # Collapsing data by interest irrespective of actual nights attended. 
     "one night was enough for me",  # There was likely a way to get here via grepl or some similar process...
-    "one night was enough for me;I don't mind either way", # ...but this is the approach for now.
+    "one night was enough for me;i don't mind either way", # ...but this is the approach for now.
     "i went one night, but would go for two nights next year;one night was enough for me",
     "i went one night, but would go for two nights next year;i don't mind either way",
     "i don't mind either way",
@@ -100,6 +100,5 @@ bench$chur_tidy <-
 
 bench$chur_tidy %>% #this is purely for demonstration purposes.
   write_csv(here("data", "chur2018_tidy.csv")) #this could simply be an object in the r enviroinment
-
 
 

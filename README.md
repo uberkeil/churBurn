@@ -126,7 +126,7 @@ bench$chur_tidy <-
 If one so desired, they could export the tidy (in terms of formatting) but not yet clean (because of missingness) dataset from the R environment
 ```r
 bench$chur_clean %>% #this is purely for demonstration purposes.
-  write_csv(here("data", "raw", "clean_data", "chur2018_clean.csv")) #this could simply be an object in the r enviroinment
+  write_csv(here("data","clean", "chur2018_clean.csv")) #this could simply be an object in the r enviroinment
 ```
 
 ## Missingness
